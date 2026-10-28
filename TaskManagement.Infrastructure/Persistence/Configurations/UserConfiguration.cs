@@ -41,5 +41,11 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.Navigation(u => u.Tasks)
             .HasField("_tasks")
             .UsePropertyAccessMode(PropertyAccessMode.Field);
+
+        builder.HasOne(user => user.Role)
+            .WithMany()
+            .HasForeignKey(user => user.RoleId)
+            .IsRequired()
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

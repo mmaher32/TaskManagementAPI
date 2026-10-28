@@ -14,11 +14,14 @@ public class User
     public DateTime CreatedAt { get; private set; }
     private readonly List<TaskItem> _tasks = new();
     public IReadOnlyCollection<TaskItem> Tasks => _tasks.AsReadOnly();
+    public int RoleId { get; private set; }
+    public Role Role { get; private set; } = null!;
     private User() { }
     public static Result<User> Create(
         string userName,
         string email,
-        string passwordHash)
+        string passwordHash,
+        Role role)
     {
         var nameResult = ValidateUserName(userName);
 
@@ -38,6 +41,7 @@ public class User
             UserName = userName.Trim(),
             Email = email.Trim(),
             PasswordHash = passwordHash,
+            Role = role,
             CreatedAt = DateTime.UtcNow
         };
 
