@@ -2,7 +2,7 @@
 
 namespace TaskManagement.Application.DTOs;
 
-public class RegisterDto
+public class RegisterResponse
 {
     [Required(ErrorMessage = "Username is required")]
     [StringLength(50, MinimumLength = 3, ErrorMessage = "Username must be between 3 and 50 characters")]

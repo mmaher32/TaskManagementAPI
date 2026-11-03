@@ -6,4 +6,7 @@ public sealed class PasswordHash : IPasswordHasher
 {
     public string Hash(string password)
     => CryptoHelper.PasswordHasher.HashPassword(password);
+
+    public bool verify(string password, string passwordHash)
+        => CryptoHelper.PasswordHasher.VerifyHashedPassword(passwordHash, password);
 }

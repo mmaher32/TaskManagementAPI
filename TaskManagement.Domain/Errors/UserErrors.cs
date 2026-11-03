@@ -40,4 +40,12 @@ public class UserErrors
     public static Error NotFound(int userId) => Error.NotFound(
         "User.NotFound",
         $"User with ID '{userId}' was not found.");
+
+    public static Error MissingCredentials = Error.Validation(
+    "User.MissingCredentials",
+    "Email and password are required.");
+
+    public static Error InvalidCredentials = Error.Unauthorized(
+        "User.InvalidCredentials",
+        "Invalid email or password.");
 }
