@@ -29,7 +29,8 @@ public class AuthService(
         var user = await _userRepo.GetByEmailAsync(email, ct);
 
         if (user is null ||
-            !_passHasher.verify(password, user.PasswordHash){
+            !_passHasher.verify(password, user.PasswordHash))
+        {
             return Result<UserResponse>.Failure(
                 UserErrors.InvalidCredentials);
         }
