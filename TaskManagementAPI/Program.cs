@@ -24,6 +24,8 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IPasswordHasher, PasswordHash>();
 builder.Services.AddScoped<IRoleRepository, RoleRepository>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<ITaskRepository, TaskRepository>();
+builder.Services.AddScoped<TaskService>();
 //jwt DI
 var jwt = builder.Configuration.GetSection("Jwt");
 var issuer = jwt["Issuer"] ??
@@ -48,6 +50,18 @@ builder.Services
     .AddJwtBearer(options =>
     {
         options.MapInboundClaims = false;
+        options.Events = new JwtBearerEvents
+        {
+            OnTokenValidated = context =>
+            {
+                var subject = context.Principal?.FindFirst("sub")?.Value;
+                if (!int.TryParse(subject, System.Globalization.NumberStyles.None,
+                        System.Globalization.CultureInfo.InvariantCulture, out var userId) || userId <= 0)
+                    context.Fail("Invalid user ID.");
+
+                return Task.CompletedTask;
+            }
+        };
 
         options.TokenValidationParameters = new TokenValidationParameters
         {
@@ -62,20 +76,6 @@ builder.Services
         };
     });
 builder.Services.AddAuthorization();
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 var app = builder.Build();
 
@@ -98,6 +98,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapAuthEndPoints();
+app.MapTaskEndPoints();
 
 app.Run();
 
