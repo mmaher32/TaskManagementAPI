@@ -1,4 +1,5 @@
-﻿using TaskManagement.Application.DTOs;
+﻿using System.Security.Claims;
+using TaskManagement.Application.DTOs;
 using TaskManagement.Application.Interfaces;
 using TaskManagement.Domain.Common;
 
@@ -10,7 +11,7 @@ public static class AuthEndPoints
     {
         var group = app.MapGroup("api/auth")
             .WithTags("Auth");
-
+        //Register
         group.MapPost("/register", async (
             RegisterResponse request,
             IAuthService authService,
@@ -39,7 +40,7 @@ public static class AuthEndPoints
                 statusCode: StatusCodes.Status201Created
                 );
         });
-
+        //Login
         group.MapPost("/login", async (
             LoginRequest request,
             IAuthService authService,
@@ -65,6 +66,13 @@ public static class AuthEndPoints
             }
             return Results.Ok(result.Value);
         });
+
+        group.MapGet("/me", (ClaimsPrincipal user) =>
+        {
+            var userId = user.FindFirst("sub")?.Value;
+            return Results.Ok(new { userId });
+        })
+            .RequireAuthorization();
         return app;
     }
 }

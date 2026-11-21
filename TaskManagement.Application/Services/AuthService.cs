@@ -12,9 +12,10 @@ public class AuthService(
     IUserRepository _userRepo,
     IRoleRepository _roleRepo,
     IPasswordHasher _passHasher,
-    IUnitOfWork _uow) : IAuthService
+    IUnitOfWork _uow,
+    IAccessTokenGenerator _accessTokenGenerator) : IAuthService
 {
-    public async Task<Result<UserResponse>> LoginAsync(LoginRequest request, CancellationToken ct)
+    public async Task<Result<LoginResponse>> LoginAsync(LoginRequest request, CancellationToken ct)
     {
         var email = request.email?.Trim() ?? string.Empty;
         var password = request.Password;
@@ -22,7 +23,7 @@ public class AuthService(
         if (string.IsNullOrWhiteSpace(email) ||
             string.IsNullOrWhiteSpace(password))
         {
-            return Result<UserResponse>.Failure(
+            return Result<LoginResponse>.Failure(
                 UserErrors.MissingCredentials);
         }
 
@@ -31,17 +32,24 @@ public class AuthService(
         if (user is null ||
             !_passHasher.verify(password, user.PasswordHash))
         {
-            return Result<UserResponse>.Failure(
+            return Result<LoginResponse>.Failure(
                 UserErrors.InvalidCredentials);
         }
 
-        return Result<UserResponse>.Success(new UserResponse
+        var (accessToken, expiresAtUtc) = _accessTokenGenerator.Generate(user);
+
+        return Result<LoginResponse>.Success(new LoginResponse
         {
-            Id = user.Id,
-            Username = user.UserName,
-            Email = user.Email,
-            CreatedAt = user.CreatedAt,
-            Role = user.Role.Name
+            User = new UserResponse
+            {
+                Id = user.Id,
+                Username = user.UserName,
+                Email = user.Email,
+                CreatedAt = user.CreatedAt,
+                Role = user.Role.Name
+            },
+            AccessToken = accessToken,
+            ExpiresAtUtc = expiresAtUtc
         });
     }
 
