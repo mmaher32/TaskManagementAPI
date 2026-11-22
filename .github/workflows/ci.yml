@@ -16,3 +16,5 @@ jobs:
           dotnet-version: '10.0.x'
 
       - run: dotnet build TaskManagementAPI.slnx          
+
+      - run: dotnet test TaskManagement.Tests/TaskManagement.Tests.csproj --no-build --filter "FullyQualifiedName~TaskItemTest"
