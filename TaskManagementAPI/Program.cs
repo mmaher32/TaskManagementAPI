@@ -102,3 +102,4 @@ app.MapTaskEndPoints();
 
 app.Run();
 
+public partial class Program { }
