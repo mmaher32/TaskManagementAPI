@@ -8,6 +8,24 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
+    env:
+      ConnectionStrings__TestConnection: "Host=localhost;Port=5432;Database=taskmanagement_tests;Username=tasktest;Password=local_ci_test_only"
+
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_DB: taskmanagement_tests
+          POSTGRES_USER: tasktest
+          POSTGRES_PASSWORD: local_ci_test_only
+        ports:
+          - "5432:5432"
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
     steps:
       - uses: actions/checkout@v7
 
@@ -15,6 +33,19 @@ jobs:
         with:
           dotnet-version: '10.0.x'
 
-      - run: dotnet build TaskManagementAPI.slnx          
+      - name: Build solution
+        run: dotnet build TaskManagementAPI.slnx
 
-      - run: dotnet test TaskManagement.Tests/TaskManagement.Tests.csproj --no-build --filter "FullyQualifiedName~TaskItemTest"
+      - name: Generate a test signing key
+        run: echo "Jwt__SigningKey=$(openssl rand -base64 32)" >> "$GITHUB_ENV"
+
+      - name: Apply database migrations
+        run: |
+          dotnet tool install --global dotnet-ef --version 10.0.14
+          dotnet ef database update --no-build \
+            --project TaskManagement.Infrastructure \
+            --startup-project TaskManagementAPI \
+            --connection "$ConnectionStrings__TestConnection"
+
+      - name: Run all tests
+        run: dotnet test TaskManagement.Tests/TaskManagement.Tests.csproj --no-build
